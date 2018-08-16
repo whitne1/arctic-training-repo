@@ -79,11 +79,11 @@ unique(catch_df$species)
 ```
 
 ```{r}
-catch_integers<- as.integer(catch_df$catch_thousands)
+#catch_integers<- as.integer(catch_df$catch_thousands)
 
-i <- which(is.na(catch_integers)==T)
+#i <- which(is.na(catch_integers)==T)
 
-catch_df$catch_thousands[i]
+#catch_df$catch_thousands[i]
 ```
 
 1) turn "I" into 1 in the catch_thousands column
@@ -91,8 +91,89 @@ catch_df$catch_thousands[i]
 3) convert catch_thousands to catch
 ```{r}
 catch_df <- catch_df %>% 
- mutate(catch_thousands = ifelse(catch_thousands == "I", 1,  catch_thousands)) %>% 
-  mutate(catch_thousands = as.integer(catch_thousands)) %>% 
-  mutate(catch=catch_thousands*1000) %>% 
-  tail()
+ mutate(catch_thousands = ifelse(catch_thousands == "I", 1, catch_thousands),
+        catch_thousands = as.integer(catch_thousands))
+```
+
+```{r}
+catch_df <- catch_df %>% 
+  mutate(catch=catch_thousands *1000)
+
+summary(catch_df)
+```
+```{r}
+catch_df <- catch_df %>% 
+  select(-catch_thousands)
+
+tail(catch_df)
+```
+
+
+
+
+```{r}
+catch_summarized <- catch_df %>% 
+  group_by(Region) %>% 
+  summarise(mean_catch = mean(catch))
+
+head(catch_summarized)
+```
+
+```{r}
+catch_range <- catch_df %>% 
+  group_by(Region) %>% 
+  summarise(catch_low = range(catch)[1],
+            catch_high = range(catch)[2])
+
+print(catch_range)
+```
+```{r}
+catch_mean<-catch_df %>% 
+  group_by(Region,species) %>% 
+  #calculate mean, sd, n
+  summarize(catch_mean=mean(catch, na.rm = T),
+            catch_stdev=sd(catch,na.rm=T),
+            num_obs=n()) %>% 
+#filter for Chinook
+  filter(species == "Chinook")
+head(catch_mean)
+```
+
+```{r}
+catch_year<- catch_df %>% 
+  filter(Year > 1990) %>% 
+  group_by(Year) %>% 
+  summarize(catch_sum=sum(catch))
+
+head(catch_year)
+```
+
+```{r}
+catch_year<- catch_df %>% 
+  filter(Year > 1990) %>% 
+  group_by(Year) %>% 
+  summarize(catch_sum=sum(catch))
+
+print(catch_year)
+```
+#Joins
+
+Read in regions definition file
+```{r}
+region_defs <- read.csv(url("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/df35b.303.1", method = "libcurl"),
+                        stringsAsFactors = FALSE)
+head(region_defs)
+```
+
+```{r}
+region_defs<-region_defs %>% 
+  select(code,mgmtArea)
+
+head(region_defs)
+```
+
+```{r}
+catch_joined <- left_join(catch_df, region_defs, by = c("Region" = "code"))
+
+head(catch_joined)
 ```

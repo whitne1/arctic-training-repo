@@ -194,22 +194,181 @@ unique(catch_df$species)</code></pre>
 <h1>A way to check for unique values</h1>
 <pre class="r"><code>unique(catch_df$species)</code></pre>
 <pre><code>## [1] &quot;Chinook&quot; &quot;Sockeye&quot; &quot;Coho&quot;    &quot;Pink&quot;    &quot;Chum&quot;</code></pre>
-<pre class="r"><code>catch_integers&lt;- as.integer(catch_df$catch_thousands)</code></pre>
-<pre><code>## Warning: NAs introduced by coercion</code></pre>
-<pre class="r"><code>i &lt;- which(is.na(catch_integers)==T)
+<pre class="r"><code>#catch_integers&lt;- as.integer(catch_df$catch_thousands)
 
-catch_df$catch_thousands[i]</code></pre>
-<pre><code>## [1] &quot;I&quot;</code></pre>
+#i &lt;- which(is.na(catch_integers)==T)
+
+#catch_df$catch_thousands[i]</code></pre>
 <ol style="list-style-type: decimal">
 <li>turn “I” into 1 in the catch_thousands column</li>
 <li>coerce catch_thousands into integer type</li>
 <li>convert catch_thousands to catch</li>
 </ol>
 <pre class="r"><code>catch_df &lt;- catch_df %&gt;% 
- mutate(catch_thousands = ifelse(catch_thousands == &quot;I&quot;, 1,  catch_thousands)) %&gt;% 
-  mutate(catch_thousands = as.integer(catch_thousands)) %&gt;% 
-  mutate(catch=catch_thousands*1000) %&gt;% 
-  tail()</code></pre>
+ mutate(catch_thousands = ifelse(catch_thousands == &quot;I&quot;, 1, catch_thousands),
+        catch_thousands = as.integer(catch_thousands))</code></pre>
+<pre class="r"><code>catch_df &lt;- catch_df %&gt;% 
+  mutate(catch=catch_thousands *1000)
+
+summary(catch_df)</code></pre>
+<pre><code>##     Region               Year        species          catch_thousands  
+##  Length:8540        Min.   :1878   Length:8540        Min.   :    0.0  
+##  Class :character   1st Qu.:1922   Class :character   1st Qu.:    0.0  
+##  Mode  :character   Median :1947   Mode  :character   Median :   36.0  
+##                     Mean   :1946                      Mean   :  873.2  
+##                     3rd Qu.:1972                      3rd Qu.:  377.2  
+##                     Max.   :1997                      Max.   :53676.0  
+##      catch         
+##  Min.   :       0  
+##  1st Qu.:       0  
+##  Median :   36000  
+##  Mean   :  873249  
+##  3rd Qu.:  377250  
+##  Max.   :53676000</code></pre>
+<pre class="r"><code>catch_df &lt;- catch_df %&gt;% 
+  select(-catch_thousands)
+
+tail(catch_df)</code></pre>
+<pre><code>##      Region Year species  catch
+## 8535    NOP 1992    Chum 342000
+## 8536    NOP 1993    Chum 135000
+## 8537    NOP 1994    Chum  84000
+## 8538    NOP 1995    Chum  99000
+## 8539    NOP 1996    Chum  68000
+## 8540    NOP 1997    Chum  97000</code></pre>
+<pre class="r"><code>catch_summarized &lt;- catch_df %&gt;% 
+  group_by(Region) %&gt;% 
+  summarise(mean_catch = mean(catch))
+
+head(catch_summarized)</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##   Region mean_catch
+##   &lt;chr&gt;       &lt;dbl&gt;
+## 1 ALU        40384.
+## 2 BER        16373.
+## 3 BRB      2709796.
+## 4 CHG       315487.
+## 5 CKI       683571.
+## 6 COP       179223.</code></pre>
+<pre class="r"><code>catch_range &lt;- catch_df %&gt;% 
+  group_by(Region) %&gt;% 
+  summarise(catch_low = range(catch)[1],
+            catch_high = range(catch)[2])
+
+print(catch_range)</code></pre>
+<pre><code>## # A tibble: 18 x 3
+##    Region catch_low catch_high
+##    &lt;chr&gt;      &lt;dbl&gt;      &lt;dbl&gt;
+##  1 ALU            0    2597000
+##  2 BER            0     419000
+##  3 BRB            0   44269000
+##  4 CHG            0    2997000
+##  5 CKI            0    9718000
+##  6 COP            0    2986000
+##  7 GSE            0    5356000
+##  8 KOD            0   42849000
+##  9 KSK            0    1447000
+## 10 KTZ            0     677000
+## 11 NOP            0    3867000
+## 12 NRS            0     982000
+## 13 NSE            0   36573000
+## 14 PWS            0   44163000
+## 15 SOP            0   16312000
+## 16 SSE            0   53676000
+## 17 YAK            0     761000
+## 18 YUK            0    1473000</code></pre>
+<pre class="r"><code>catch_mean&lt;-catch_df %&gt;% 
+  group_by(Region,species) %&gt;% 
+  #calculate mean, sd, n
+  summarize(catch_mean=mean(catch, na.rm = T),
+            catch_stdev=sd(catch,na.rm=T),
+            num_obs=n()) %&gt;% 
+#filter for Chinook
+  filter(species == &quot;Chinook&quot;)
+head(catch_mean)</code></pre>
+<pre><code>## # A tibble: 6 x 5
+## # Groups:   Region [6]
+##   Region species catch_mean catch_stdev num_obs
+##   &lt;chr&gt;  &lt;chr&gt;        &lt;dbl&gt;       &lt;dbl&gt;   &lt;int&gt;
+## 1 ALU    Chinook       23.0        214.      87
+## 2 BER    Chinook       19.6        139.     102
+## 3 BRB    Chinook    76211.       52222.     114
+## 4 CHG    Chinook     1536.        2540.     110
+## 5 CKI    Chinook    43876.       33859.     105
+## 6 COP    Chinook    19798.       14352.      94</code></pre>
+<pre class="r"><code>catch_year&lt;- catch_df %&gt;% 
+  filter(Year &gt; 1990) %&gt;% 
+  group_by(Year) %&gt;% 
+  summarize(catch_sum=sum(catch))
+
+head(catch_year)</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##    Year catch_sum
+##   &lt;int&gt;     &lt;dbl&gt;
+## 1  1991 189520000
+## 2  1992 136726000
+## 3  1993 193107000
+## 4  1994 195882000
+## 5  1995 217260000
+## 6  1996 176072000</code></pre>
+<pre class="r"><code>catch_year&lt;- catch_df %&gt;% 
+  filter(Year &gt; 1990) %&gt;% 
+  group_by(Year) %&gt;% 
+  summarize(catch_sum=sum(catch))
+
+print(catch_year)</code></pre>
+<pre><code>## # A tibble: 7 x 2
+##    Year catch_sum
+##   &lt;int&gt;     &lt;dbl&gt;
+## 1  1991 189520000
+## 2  1992 136726000
+## 3  1993 193107000
+## 4  1994 195882000
+## 5  1995 217260000
+## 6  1996 176072000
+## 7  1997 122694000</code></pre>
+</div>
+<div id="joins" class="section level1">
+<h1>Joins</h1>
+<p>Read in regions definition file</p>
+<pre class="r"><code>region_defs &lt;- read.csv(url(&quot;https://knb.ecoinformatics.org/knb/d1/mn/v2/object/df35b.303.1&quot;, method = &quot;libcurl&quot;),
+                        stringsAsFactors = FALSE)
+head(region_defs)</code></pre>
+<pre><code>##      code                                  mgmtArea areaClass regionCode
+## 1     GSE              Unallocated Southeast Alaska  mgmtArea          1
+## 2     NSE                 Northern Southeast Alaska  mgmtArea          1
+## 3     SSE                 Southern Southeast Alaska  mgmtArea          1
+## 4     YAK                                   Yakutat  mgmtArea          1
+## 5 PWSmgmt      Prince William Sound Management Area  mgmtArea          2
+## 6     BER Bering River Subarea Copper River Subarea   subarea          2
+##                                                                                                                                                                                     notes
+## 1                                                            Included are Southeastern Alaska catches which could not be assigned\nto Northern or Southern Southeastern Alaska or Yakutat
+## 2 Northern Southern Alaska includes Districts 9 through 16 from summer straight northwest to and including the fairweather Grounds but excludes Yakutat fisheries unless otherwise noted.
+## 3                                                                                                                                                                                        
+## 4                                                                                                                                                                                        
+## 5                                                                                                            Includes the Bering River and Copper River and Prince William Sound Subareas
+## 6</code></pre>
+<pre class="r"><code>region_defs&lt;-region_defs %&gt;% 
+  select(code,mgmtArea)
+
+head(region_defs)</code></pre>
+<pre><code>##      code                                  mgmtArea
+## 1     GSE              Unallocated Southeast Alaska
+## 2     NSE                 Northern Southeast Alaska
+## 3     SSE                 Southern Southeast Alaska
+## 4     YAK                                   Yakutat
+## 5 PWSmgmt      Prince William Sound Management Area
+## 6     BER Bering River Subarea Copper River Subarea</code></pre>
+<pre class="r"><code>catch_joined &lt;- left_join(catch_df, region_defs, by = c(&quot;Region&quot; = &quot;code&quot;))
+
+head(catch_joined)</code></pre>
+<pre><code>##   Region Year species catch                  mgmtArea
+## 1    SSE 1886 Chinook     0 Southern Southeast Alaska
+## 2    SSE 1887 Chinook     0 Southern Southeast Alaska
+## 3    SSE 1888 Chinook     0 Southern Southeast Alaska
+## 4    SSE 1889 Chinook     0 Southern Southeast Alaska
+## 5    SSE 1890 Chinook     0 Southern Southeast Alaska
+## 6    SSE 1891 Chinook     0 Southern Southeast Alaska</code></pre>
 </div>
 
 

@@ -160,6 +160,56 @@ head(catch_df)</code></pre>
 ## 4    SSE 1889       0     182   11   92    0 285             
 ## 5    SSE 1890       0     251   42    0    0 292             
 ## 6    SSE 1891       0     274   24    0    0 298</code></pre>
+<pre class="r"><code>catch_df &lt;- catch_df %&gt;% 
+  select(Region, Year, Chinook, Sockeye, Coho, Pink, Chum) </code></pre>
+<pre class="r"><code>#catch_df %&gt;% 
+  #select(-All, -notesRegCode) </code></pre>
+<pre class="r"><code>catch_df &lt;-catch_df %&gt;% 
+  gather(key=&quot;species&quot;, value = &quot;catch&quot;, -Region, -Year)
+head(catch_df)</code></pre>
+<pre><code>##   Region Year species catch
+## 1    SSE 1886 Chinook     0
+## 2    SSE 1887 Chinook     0
+## 3    SSE 1888 Chinook     0
+## 4    SSE 1889 Chinook     0
+## 5    SSE 1890 Chinook     0
+## 6    SSE 1891 Chinook     0</code></pre>
+<pre class="r"><code>unique(catch_df$species)</code></pre>
+<pre><code>## [1] &quot;Chinook&quot; &quot;Sockeye&quot; &quot;Coho&quot;    &quot;Pink&quot;    &quot;Chum&quot;</code></pre>
+<pre class="r"><code>catch_df &lt;- catch_df %&gt;% 
+  rename(catch_thousands = catch)
+
+unique(catch_df$species)</code></pre>
+<pre><code>## [1] &quot;Chinook&quot; &quot;Sockeye&quot; &quot;Coho&quot;    &quot;Pink&quot;    &quot;Chum&quot;</code></pre>
+<pre class="r"><code>head(catch_df)</code></pre>
+<pre><code>##   Region Year species catch_thousands
+## 1    SSE 1886 Chinook               0
+## 2    SSE 1887 Chinook               0
+## 3    SSE 1888 Chinook               0
+## 4    SSE 1889 Chinook               0
+## 5    SSE 1890 Chinook               0
+## 6    SSE 1891 Chinook               0</code></pre>
+</div>
+<div id="a-way-to-check-for-unique-values" class="section level1">
+<h1>A way to check for unique values</h1>
+<pre class="r"><code>unique(catch_df$species)</code></pre>
+<pre><code>## [1] &quot;Chinook&quot; &quot;Sockeye&quot; &quot;Coho&quot;    &quot;Pink&quot;    &quot;Chum&quot;</code></pre>
+<pre class="r"><code>catch_integers&lt;- as.integer(catch_df$catch_thousands)</code></pre>
+<pre><code>## Warning: NAs introduced by coercion</code></pre>
+<pre class="r"><code>i &lt;- which(is.na(catch_integers)==T)
+
+catch_df$catch_thousands[i]</code></pre>
+<pre><code>## [1] &quot;I&quot;</code></pre>
+<ol style="list-style-type: decimal">
+<li>turn “I” into 1 in the catch_thousands column</li>
+<li>coerce catch_thousands into integer type</li>
+<li>convert catch_thousands to catch</li>
+</ol>
+<pre class="r"><code>catch_df &lt;- catch_df %&gt;% 
+ mutate(catch_thousands = ifelse(catch_thousands == &quot;I&quot;, 1,  catch_thousands)) %&gt;% 
+  mutate(catch_thousands = as.integer(catch_thousands)) %&gt;% 
+  mutate(catch=catch_thousands*1000) %&gt;% 
+  tail()</code></pre>
 </div>
 
 

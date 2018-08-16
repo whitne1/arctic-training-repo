@@ -1,6 +1,6 @@
 # arctic-training-repo
 Practice with Github at the Arctic Data Center training
-Tobias Schwoerer
+Hahahaha
 
 This is a test repository for the training.
 

@@ -1,6 +1,6 @@
 # arctic-training-repo
 Practice with Github at the Arctic Data Center training
-Hahahaha
+Toby and Erin get along.
 
 This is a test repository for the training.
 

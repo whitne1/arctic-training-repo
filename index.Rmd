@@ -88,6 +88,7 @@ locs <- locations %>% mutate(Longitude = abs(Longitude) * -1)
 
 leaflet(locs) %>% 
   addTiles() %>% 
-  addMarkers(~ Longitude, ~ Latitude, popup = ~ Location)
+  addMarkers(~ Longitude, ~ Latitude, popup = ~ Location) %>% 
+  addProviderTiles(providers$Esri.WorldImagery)
 ```
 
